@@ -231,3 +231,38 @@ return (
                 demonstrations: categoryModules.filter(m => m.isDemonstration && progress[m.id]).length,
                 activities: categoryModules.filter(m => m.isActivity && progress[m.id]).length
               };
+              return (
+                <CategoryCard
+                  key={category}
+                  category={category}
+                  completed={completedCount}
+                  total={categoryModules.length}
+                  progress={categoryProgress}
+                  typeStats={categoryTypeStats}
+                  onTap={() => handleCategoryClick(category)}
+                />
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Quick Actions */}
+        <section>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div
+              className="bg-white rounded-2xl border border-gray-100 p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-blue-200"
+              onClick={() => handleQuickActionClick()}
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">All Modules</h3>
+                  <p className="text-sm text-gray-600">Browse all learning content</p>
+                </div>
+              </div>
+            </div>
