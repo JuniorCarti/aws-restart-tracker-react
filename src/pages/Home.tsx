@@ -96,3 +96,17 @@ return (
           </div>
         </div>
       </header>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Progress Overview */}
+        <div className="bg-gradient-to-br from-blue-50 to-orange-50 rounded-3xl p-8 mb-8">
+          <div className="flex flex-col items-center text-center">
+            <ProgressRing progress={overallProgress} size={140} strokeWidth={10} />
+            <h2 className="text-2xl font-bold text-gray-900 mt-6">
+              {Math.round(overallProgress * 100)}% Complete
+            </h2>
+            <p className="text-gray-600 mt-2">
+              {totalCompleted} of {modules.length} modules completed
+            </p>
+          </div>
+        </div>
