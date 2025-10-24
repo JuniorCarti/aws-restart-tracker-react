@@ -211,3 +211,23 @@ return (
             </div>
           </div>
         </section>
+        {/* Categories Grid */}
+        <section className="mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Categories</h2>
+            <span className="text-sm text-gray-500">
+              {Object.keys(categoryStats).length} categories
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Object.entries(categoryStats).map(([category, completedCount]) => {
+              const categoryModules = modules.filter(m => m.category === category);
+              const categoryProgress = categoryModules.length > 0 ? completedCount / categoryModules.length : 0;
+              const categoryTypeStats = {
+                labs: categoryModules.filter(m => m.isLab && progress[m.id]).length,
+                knowledgeChecks: categoryModules.filter(m => m.isKC && progress[m.id]).length,
+                exitTickets: categoryModules.filter(m => m.isExitTicket && progress[m.id]).length,
+                demonstrations: categoryModules.filter(m => m.isDemonstration && progress[m.id]).length,
+                activities: categoryModules.filter(m => m.isActivity && progress[m.id]).length
+              };
