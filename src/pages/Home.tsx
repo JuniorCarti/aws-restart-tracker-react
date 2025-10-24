@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { ProgressRing } from '../components/ProgressRing';
 import { CategoryCard } from '../components/CategoryCard';
+import { OnboardingTour } from '../components/OnboardingTour';
 import { DataService } from '../services/dataService';
 import { ProgressService } from '../services/progressService';
+import { OnboardingService } from '../services/onboardingService';
 import { Module, CategoryStats, ModuleTypeStats } from '../types';
 
 export const Home: React.FC = () => {
   const [modules, setModules] = useState<Module[]>([]);
   const [progress, setProgress] = useState<{ [key: number]: boolean }>({});
   const [loading, setLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     loadData();
+    checkOnboarding();
   }, []);
+
   const loadData = () => {
     const allModules = DataService.getAllModules();
     const userProgress = ProgressService.getProgress();
@@ -21,6 +26,12 @@ export const Home: React.FC = () => {
     setProgress(userProgress);
     setLoading(false);
   };
+
+  const checkOnboarding = () => {
+    const config = OnboardingService.getConfig();
+    setShowOnboarding(config.showOnboarding);
+  };
+
   const totalCompleted = DataService.getTotalCompleted(progress);
   const overallProgress = DataService.getOverallProgress(modules, progress);
   const categoryStats = DataService.getCategoryStats(modules, progress);
@@ -32,6 +43,12 @@ export const Home: React.FC = () => {
       loadData();
     }
   };
+
+  const resetOnboarding = () => {
+    OnboardingService.resetOnboarding();
+    setShowOnboarding(true);
+  };
+
   // Fixed navigation function for hash routing
   const navigateTo = (path: string) => {
     console.log('Navigating to:', path);
@@ -53,10 +70,19 @@ export const Home: React.FC = () => {
       navigateTo('/modules');
     }
   };
+
   // Function to handle module type statistic clicks
   const handleTypeStatClick = (type: string) => {
     console.log(`Type stat clicked: ${type}`);
     navigateTo(`/modules?type=${type}`);
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+  };
+
+  const handleOnboardingSkip = () => {
+    setShowOnboarding(false);
   };
 
   if (loading) {
@@ -72,8 +98,16 @@ export const Home: React.FC = () => {
       </div>
     );
   }
-return (
+
+  return (
     <div className="min-h-screen bg-gray-50">
+      {/* Onboarding Tour */}
+      <OnboardingTour
+        isOpen={showOnboarding}
+        onComplete={handleOnboardingComplete}
+        onSkip={handleOnboardingSkip}
+      />
+
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -83,6 +117,15 @@ return (
               <p className="text-sm text-gray-600">Progress Tracker</p>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={resetOnboarding}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+                title="Show Tutorial Again"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
               <button
                 onClick={resetProgress}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
@@ -96,10 +139,11 @@ return (
           </div>
         </div>
       </header>
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Progress Overview */}
-        <div className="bg-gradient-to-br from-blue-50 to-orange-50 rounded-3xl p-8 mb-8">
+        {/* Progress Overview - Add class for tour */}
+        <div className="bg-gradient-to-br from-blue-50 to-orange-50 rounded-3xl p-8 mb-8 progress-ring-container">
           <div className="flex flex-col items-center text-center">
             <ProgressRing progress={overallProgress} size={140} strokeWidth={10} />
             <h2 className="text-2xl font-bold text-gray-900 mt-6">
@@ -110,8 +154,9 @@ return (
             </p>
           </div>
         </div>
-        {/* Module Type Statistics */}
-        <section className="mb-8">
+
+        {/* Module Type Statistics - Add class for tour */}
+        <section className="mb-8 module-type-stats">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Progress by Module Type</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {/* Labs */}
@@ -133,6 +178,7 @@ return (
                 {Math.round((moduleTypeStats.labs / modules.filter(m => m.isLab).length) * 100) || 0}%
               </div>
             </div>
+
             {/* Knowledge Checks */}
             <div 
               className="bg-white rounded-xl border border-gray-100 p-4 text-center hover:shadow-md transition-shadow cursor-pointer"
@@ -152,6 +198,7 @@ return (
                 {Math.round((moduleTypeStats.knowledgeChecks / modules.filter(m => m.isKC).length) * 100) || 0}%
               </div>
             </div>
+
             {/* Exit Tickets */}
             <div 
               className="bg-white rounded-xl border border-gray-100 p-4 text-center hover:shadow-md transition-shadow cursor-pointer"
@@ -171,6 +218,7 @@ return (
                 {Math.round((moduleTypeStats.exitTickets / modules.filter(m => m.isExitTicket).length) * 100) || 0}%
               </div>
             </div>
+
             {/* Demonstrations */}
             <div 
               className="bg-white rounded-xl border border-gray-100 p-4 text-center hover:shadow-md transition-shadow cursor-pointer"
@@ -190,6 +238,7 @@ return (
                 {Math.round((moduleTypeStats.demonstrations / modules.filter(m => m.isDemonstration).length) * 100) || 0}%
               </div>
             </div>
+
             {/* Activities */}
             <div 
               className="bg-white rounded-xl border border-gray-100 p-4 text-center hover:shadow-md transition-shadow cursor-pointer"
@@ -211,8 +260,9 @@ return (
             </div>
           </div>
         </section>
-        {/* Categories Grid */}
-        <section className="mb-8">
+
+        {/* Categories Grid - Add class for tour */}
+        <section className="mb-8 categories-grid">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Categories</h2>
             <span className="text-sm text-gray-500">
@@ -231,6 +281,7 @@ return (
                 demonstrations: categoryModules.filter(m => m.isDemonstration && progress[m.id]).length,
                 activities: categoryModules.filter(m => m.isActivity && progress[m.id]).length
               };
+              
               return (
                 <CategoryCard
                   key={category}
@@ -246,8 +297,8 @@ return (
           </div>
         </section>
 
-        {/* Quick Actions */}
-        <section>
+        {/* Quick Actions - Add class for tour */}
+        <section className="quick-actions">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div
@@ -266,6 +317,7 @@ return (
                 </div>
               </div>
             </div>
+            
             <div
               className="bg-white rounded-2xl border border-gray-100 p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-green-200"
               onClick={() => handleQuickActionClick('labs')}
@@ -300,6 +352,7 @@ return (
                 </div>
               </div>
             </div>
+            
             <div
               className="bg-white rounded-2xl border border-gray-100 p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-orange-200"
               onClick={() => navigateTo('/stats')}
@@ -322,4 +375,3 @@ return (
     </div>
   );
 };
-
