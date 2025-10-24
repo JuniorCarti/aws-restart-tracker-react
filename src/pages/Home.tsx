@@ -21,3 +21,14 @@ export const Home: React.FC = () => {
     setProgress(userProgress);
     setLoading(false);
   };
+  const totalCompleted = DataService.getTotalCompleted(progress);
+  const overallProgress = DataService.getOverallProgress(modules, progress);
+  const categoryStats = DataService.getCategoryStats(modules, progress);
+  const moduleTypeStats = DataService.getModuleTypeStats(modules, progress);
+
+  const resetProgress = () => {
+    if (window.confirm('Are you sure you want to reset all progress?')) {
+      ProgressService.resetProgress();
+      loadData();
+    }
+  };
