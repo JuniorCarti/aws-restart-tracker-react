@@ -38,6 +38,13 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       position: 'bottom'
     },
     {
+      id: 'labs-demo',
+      title: '🔬 Hands-on Labs',
+      content: 'Click here to view all Lab exercises where you get hands-on AWS experience.',
+      target: '.module-type-stats .bg-blue-500',
+      position: 'bottom'
+    },
+    {
       id: 'categories',
       title: '📚 Learning Categories',
       content: 'Each category represents a major section of the AWS RESTART program. Click any category to see its modules.',
@@ -54,7 +61,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     {
       id: 'completion',
       title: '✅ Tracking Progress',
-      content: 'Click any module to mark it as completed. Your progress saves automatically!',
+      content: 'Click any module to mark it as completed. Your progress saves automatically! Ready to start learning?',
       target: 'global',
       position: 'center'
     }
@@ -64,6 +71,11 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     if (isOpen) {
       setCurrentStep(0);
       document.body.style.overflow = 'hidden';
+      
+      // Scroll to the first step's target
+      setTimeout(() => {
+        scrollToCurrentStep();
+      }, 100);
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -73,9 +85,60 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen) {
+      scrollToCurrentStep();
+    }
+  }, [currentStep, isOpen]);
+
+  const scrollToCurrentStep = () => {
+    const step = tourSteps[currentStep];
+    
+    if (step.target && step.target !== 'global') {
+      const element = document.querySelector(step.target);
+      if (element) {
+        element.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'center'
+        });
+      }
+    }
+  };
+
+  const navigateToSection = (stepId: string) => {
+    switch (stepId) {
+      case 'labs-demo':
+        // Navigate to Labs view
+        window.location.hash = '/modules?type=labs';
+        break;
+      case 'categories':
+        // Ensure we're on home page to see categories
+        window.location.hash = '/';
+        break;
+      case 'quick-actions':
+        // Scroll to quick actions
+        const quickActions = document.querySelector('.quick-actions');
+        if (quickActions) {
+          quickActions.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        break;
+      default:
+        // For other steps, just scroll to the element
+        scrollToCurrentStep();
+    }
+  };
+
   const nextStep = () => {
+    const currentStepId = tourSteps[currentStep].id;
+    
+    // Navigate before moving to next step
+    navigateToSection(currentStepId);
+
     if (currentStep < tourSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      setTimeout(() => {
+        setCurrentStep(currentStep + 1);
+      }, 500);
     } else {
       handleComplete();
     }
@@ -96,11 +159,28 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     onSkip();
   };
 
+  // Function to handle direct navigation for specific steps
+  const handleActionClick = (action: string) => {
+    switch (action) {
+      case 'view-labs':
+        window.location.hash = '/modules?type=labs';
+        handleComplete();
+        break;
+      case 'view-categories':
+        window.location.hash = '/';
+        handleComplete();
+        break;
+      default:
+        nextStep();
+    }
+  };
+
   if (!isOpen) return null;
 
   const step = tourSteps[currentStep];
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === tourSteps.length - 1;
+  const isActionStep = step.id === 'labs-demo' || step.id === 'categories' || step.id === 'quick-actions';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -123,6 +203,36 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
         {/* Content */}
         <div className="p-6">
           <p className="text-gray-600 leading-relaxed">{step.content}</p>
+          
+          {/* Action buttons for specific steps */}
+          {isActionStep && (
+            <div className="mt-4 flex space-x-3">
+              {step.id === 'labs-demo' && (
+                <button
+                  onClick={() => handleActionClick('view-labs')}
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                >
+                  🔬 View Labs
+                </button>
+              )}
+              {step.id === 'categories' && (
+                <button
+                  onClick={() => handleActionClick('view-categories')}
+                  className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors text-sm"
+                >
+                  📚 Explore Categories
+                </button>
+              )}
+              {step.id === 'quick-actions' && (
+                <button
+                  onClick={nextStep}
+                  className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 transition-colors text-sm"
+                >
+                  ⚡ Try Quick Actions
+                </button>
+              )}
+            </div>
+          )}
           
           {/* Step Indicator */}
           <div className="flex justify-center space-x-2 mt-6">
@@ -160,12 +270,14 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                 Skip Tour
               </button>
               
-              <button
-                onClick={nextStep}
-                className="px-6 py-2 bg-aws-blue text-white rounded-lg font-medium hover:bg-aws-blue-dark transition-colors"
-              >
-                {isLastStep ? 'Get Started!' : 'Next'}
-              </button>
+              {!isActionStep && (
+                <button
+                  onClick={nextStep}
+                  className="px-6 py-2 bg-aws-blue text-white rounded-lg font-medium hover:bg-aws-blue-dark transition-colors"
+                >
+                  {isLastStep ? 'Get Started!' : 'Next'}
+                </button>
+              )}
             </div>
           </div>
         </div>
