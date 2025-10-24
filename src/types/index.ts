@@ -43,3 +43,15 @@ export interface CategoryProgress {
     activities: number;
   };
 }
+
+export interface TourStep {
+  id: string;
+  title: string;
+  content: string;
+  target: string; // CSS selector or 'global'
+  position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
+}
+
+export interface AppConfig {
+  showOnboarding: boolean;
+}
