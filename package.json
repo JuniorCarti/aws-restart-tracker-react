@@ -1,18 +1,27 @@
 {
   "name": "aws-restart-tracker",
   "version": "1.0.0",
+  "description": "AWS RESTART Program Progress Tracker - Track your learning progress through the AWS RESTART curriculum",
+  "keywords": ["aws", "restart", "progress", "tracker", "education", "learning"],
+  "homepage": "https://your-project-name.web.app",
   "dependencies": {
+    "lucide-react": "^0.263.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^7.9.4",
     "react-scripts": "5.0.1",
-    "lucide-react": "^0.263.1",
     "typescript": "^4.9.5"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "serve": "firebase serve",
+    "build:serve": "npm run build && firebase serve"
   },
   "browserslist": {
     "production": [
@@ -27,11 +36,16 @@
     ]
   },
   "devDependencies": {
+    "@types/node": "^18.15.3",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
-    "@types/node": "^18.15.3",
-    "tailwindcss": "^3.3.0",
     "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.21"
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.3.0",
+    "firebase-tools": "^12.4.3"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
   }
 }
