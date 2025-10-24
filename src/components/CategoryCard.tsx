@@ -39,3 +39,26 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
     };
     return icons[cat] || '📁';
   };
+  const getCategoryColor = (cat: string): string => {
+    const colors: { [key: string]: string } = {
+      'Introduction': 'bg-blue-500',
+      'Cloud Fundamentals': 'bg-green-500',
+      'AWS Core Services': 'bg-purple-500',
+      'Linux': 'bg-yellow-500',
+      'Networking': 'bg-red-500',
+      'Security': 'bg-pink-500',
+      'Python Programming': 'bg-indigo-500',
+      'Databases': 'bg-teal-500',
+      'AWS Architecture': 'bg-orange-500',
+      'Systems Operations': 'bg-cyan-500',
+      'Exam Prep': 'bg-gray-500',
+      'AWS Advanced Skills: Artificial Intelligence': 'bg-purple-500'
+    };
+    return colors[cat] || 'bg-gray-400';
+  };
+
+  const abbreviateCategory = (cat: string): string => {
+    const words = cat.split(' ');
+    if (words.length <= 2) return cat;
+    return words.slice(0, 2).join(' ');
+  };
