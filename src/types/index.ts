@@ -2,8 +2,11 @@ export interface Module {
   id: number;
   title: string;
   subtitle?: string;
-  isKC: boolean;
-  isLab: boolean;
+  isKC: boolean;        // Knowledge Check
+  isLab: boolean;       // Lab Exercise
+  isExitTicket: boolean; // Exit Ticket
+  isDemonstration: boolean; // Demonstration
+  isActivity: boolean;  // Activity
   category: string;
 }
 
@@ -16,4 +19,27 @@ export interface ModuleProgress {
 
 export interface CategoryStats {
   [category: string]: number;
+}
+
+export interface ModuleTypeStats {
+  labs: number;
+  knowledgeChecks: number;
+  exitTickets: number;
+  demonstrations: number;
+  activities: number;
+  total: number;
+}
+
+export interface CategoryProgress {
+  category: string;
+  completed: number;
+  total: number;
+  percentage: number;
+  typeBreakdown: {
+    labs: number;
+    knowledgeChecks: number;
+    exitTickets: number;
+    demonstrations: number;
+    activities: number;
+  };
 }
