@@ -14,3 +14,28 @@ interface CategoryCardProps {
   };
   onTap: () => void;
 }
+export const CategoryCard: React.FC<CategoryCardProps> = ({
+  category,
+  completed,
+  total,
+  progress,
+  typeStats,
+  onTap
+}) => {
+  const getCategoryIcon = (cat: string): string => {
+    const icons: { [key: string]: string } = {
+      'Introduction': '🚀',
+      'Cloud Fundamentals': '☁️',
+      'AWS Core Services': '⚙️',
+      'Linux': '🐧',
+      'Networking': '🌐',
+      'Security': '🔒',
+      'Python Programming': '🐍',
+      'Databases': '💾',
+      'AWS Architecture': '🏗️',
+      'Systems Operations': '🛠️',
+      'Exam Prep': '📚',
+      'AWS Advanced Skills: Artificial Intelligence': '🤖'
+    };
+    return icons[cat] || '📁';
+  };
