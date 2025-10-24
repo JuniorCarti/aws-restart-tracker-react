@@ -152,3 +152,22 @@ return (
                 {Math.round((moduleTypeStats.knowledgeChecks / modules.filter(m => m.isKC).length) * 100) || 0}%
               </div>
             </div>
+            {/* Exit Tickets */}
+            <div 
+              className="bg-white rounded-xl border border-gray-100 p-4 text-center hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => handleTypeStatClick('exit-tickets')}
+            >
+              <div className="flex items-center justify-center space-x-2 mb-2">
+                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                <span className="text-xs font-medium text-gray-500">EXIT TICKETS</span>
+              </div>
+              <div className="text-2xl font-bold text-purple-600">
+                {moduleTypeStats.exitTickets}
+                <span className="text-sm font-normal text-gray-500 block">
+                  / {modules.filter(m => m.isExitTicket).length}
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                {Math.round((moduleTypeStats.exitTickets / modules.filter(m => m.isExitTicket).length) * 100) || 0}%
+              </div>
+            </div>
