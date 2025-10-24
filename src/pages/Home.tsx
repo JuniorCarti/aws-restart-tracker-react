@@ -110,3 +110,26 @@ return (
             </p>
           </div>
         </div>
+        {/* Module Type Statistics */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Progress by Module Type</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {/* Labs */}
+            <div 
+              className="bg-white rounded-xl border border-gray-100 p-4 text-center hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => handleTypeStatClick('labs')}
+            >
+              <div className="flex items-center justify-center space-x-2 mb-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span className="text-xs font-medium text-gray-500">LABS</span>
+              </div>
+              <div className="text-2xl font-bold text-blue-600">
+                {moduleTypeStats.labs}
+                <span className="text-sm font-normal text-gray-500 block">
+                  / {modules.filter(m => m.isLab).length}
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                {Math.round((moduleTypeStats.labs / modules.filter(m => m.isLab).length) * 100) || 0}%
+              </div>
+            </div>
