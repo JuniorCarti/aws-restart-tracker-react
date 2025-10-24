@@ -13,3 +13,11 @@ export const Home: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
+  const loadData = () => {
+    const allModules = DataService.getAllModules();
+    const userProgress = ProgressService.getProgress();
+    
+    setModules(allModules);
+    setProgress(userProgress);
+    setLoading(false);
+  };
