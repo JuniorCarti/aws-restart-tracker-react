@@ -32,3 +32,24 @@ export const Home: React.FC = () => {
       loadData();
     }
   };
+  // Fixed navigation function for hash routing
+  const navigateTo = (path: string) => {
+    console.log('Navigating to:', path);
+    window.location.hash = path;
+  };
+
+  // Function to handle category clicks
+  const handleCategoryClick = (category: string) => {
+    console.log(`Category clicked: ${category}`);
+    navigateTo(`/modules?category=${encodeURIComponent(category)}`);
+  };
+
+  // Function to handle quick action clicks
+  const handleQuickActionClick = (type?: string) => {
+    console.log(`Quick action clicked: ${type || 'all modules'}`);
+    if (type) {
+      navigateTo(`/modules?type=${type}`);
+    } else {
+      navigateTo('/modules');
+    }
+  };
