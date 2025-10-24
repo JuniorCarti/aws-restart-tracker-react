@@ -62,3 +62,25 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
     if (words.length <= 2) return cat;
     return words.slice(0, 2).join(' ');
   };
+  const getTypeProgressBars = () => {
+    if (!typeStats) return null;
+
+    const types = [
+      { key: 'labs', label: 'L', color: 'bg-blue-500', count: typeStats.labs },
+      { key: 'knowledgeChecks', label: 'KC', color: 'bg-green-500', count: typeStats.knowledgeChecks },
+      { key: 'exitTickets', label: 'ET', color: 'bg-purple-500', count: typeStats.exitTickets },
+      { key: 'demonstrations', label: 'D', color: 'bg-yellow-500', count: typeStats.demonstrations },
+      { key: 'activities', label: 'A', color: 'bg-indigo-500', count: typeStats.activities }
+    ];
+
+    return (
+      <div className="flex items-center justify-between space-x-1 mt-3">
+        {types.map(type => (
+          <div key={type.key} className="flex-1 text-center" title={`${type.label}: ${type.count}`}>
+            <div className={`w-2 h-2 rounded-full mx-auto mb-1 ${type.color}`}></div>
+            <div className="text-xs font-medium text-gray-700">{type.count}</div>
+          </div>
+        ))}
+      </div>
+    );
+  };
