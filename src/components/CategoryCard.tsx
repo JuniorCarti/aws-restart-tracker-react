@@ -84,3 +84,70 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       </div>
     );
   };
+  const handleClick = () => {
+    console.log(`Category clicked: ${category}`);
+    onTap();
+  };
+
+  return (
+    <div
+      className="bg-white rounded-2xl border border-gray-100 p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-orange-200 group"
+      onClick={handleClick}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className={`w-10 h-10 rounded-full ${getCategoryColor(category)} bg-opacity-10 flex items-center justify-center text-lg group-hover:scale-110 transition-transform`}>
+          <span className={getCategoryColor(category).replace('bg-', 'text-')}>
+            {getCategoryIcon(category)}
+          </span>
+        </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold text-gray-900">{completed}</div>
+          <div className="text-sm text-gray-500">of {total}</div>
+        </div>
+      </div>
+      
+      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+        {abbreviateCategory(category)}
+      </h3>
+      
+      {/* Progress Bar */}
+      <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
+        <div
+          className={`h-2 rounded-full transition-all duration-300 ${getCategoryColor(category)}`}
+          style={{ width: `${progress * 100}%` }}
+        ></div>
+      </div>
+      
+      <div className="flex justify-between items-center">
+        <div className="text-xs text-gray-500">
+          {Math.round(progress * 100)}% complete
+        </div>
+        
+        {/* Module Type Indicators */}
+        {typeStats && (
+          <div className="flex space-x-1">
+            {typeStats.labs > 0 && (
+              <div className="w-2 h-2 bg-blue-500 rounded-full" title={`${typeStats.labs} Labs`}></div>
+            )}
+            {typeStats.knowledgeChecks > 0 && (
+              <div className="w-2 h-2 bg-green-500 rounded-full" title={`${typeStats.knowledgeChecks} Knowledge Checks`}></div>
+            )}
+            {typeStats.exitTickets > 0 && (
+              <div className="w-2 h-2 bg-purple-500 rounded-full" title={`${typeStats.exitTickets} Exit Tickets`}></div>
+            )}
+            {typeStats.demonstrations > 0 && (
+              <div className="w-2 h-2 bg-yellow-500 rounded-full" title={`${typeStats.demonstrations} Demonstrations`}></div>
+            )}
+            {typeStats.activities > 0 && (
+              <div className="w-2 h-2 bg-indigo-500 rounded-full" title={`${typeStats.activities} Activities`}></div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Detailed Type Progress */}
+      {getTypeProgressBars()}
+    </div>
+  );
+};
+
