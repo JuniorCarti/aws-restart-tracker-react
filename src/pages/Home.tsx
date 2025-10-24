@@ -53,3 +53,22 @@ export const Home: React.FC = () => {
       navigateTo('/modules');
     }
   };
+  // Function to handle module type statistic clicks
+  const handleTypeStatClick = (type: string) => {
+    console.log(`Type stat clicked: ${type}`);
+    navigateTo(`/modules?type=${type}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-aws-blue rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">☁️</span>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900">AWS RESTART</h2>
+          <p className="text-gray-600">Loading your progress...</p>
+        </div>
+      </div>
+    );
+  }
