@@ -5,26 +5,54 @@ import { OnboardingTour } from '../components/OnboardingTour';
 import { DataService } from '../services/dataService';
 import { ProgressService } from '../services/progressService';
 import { OnboardingService } from '../services/onboardingService';
-import { Module, CategoryStats, ModuleTypeStats } from '../types';
+import { FirestoreService } from '../services/firestoreService';
+import { useAuth } from '../contexts/AuthContext';
+import { Module, CategoryStats, ModuleTypeStats, LeaderboardEntry, UserStats } from '../types';
 
 export const Home: React.FC = () => {
   const [modules, setModules] = useState<Module[]>([]);
   const [progress, setProgress] = useState<{ [key: number]: boolean }>({});
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [topPerformers, setTopPerformers] = useState<LeaderboardEntry[]>([]);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const { currentUser, logout } = useAuth();
 
   useEffect(() => {
     loadData();
     checkOnboarding();
-  }, []);
-
-  const loadData = () => {
-    const allModules = DataService.getAllModules();
-    const userProgress = ProgressService.getProgress();
     
-    setModules(allModules);
-    setProgress(userProgress);
-    setLoading(false);
+    // Load top performers for leaderboard preview
+    if (currentUser) {
+      loadTopPerformers();
+    }
+  }, [currentUser]);
+
+  const loadData = async () => {
+    try {
+      const allModules = DataService.getAllModules();
+      const userProgress = await ProgressService.getProgress();
+      
+      setModules(allModules);
+      setProgress(userProgress);
+      
+      // Calculate user stats for points
+      const stats = DataService.calculateUserPoints(allModules, userProgress);
+      setUserStats(stats);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadTopPerformers = async () => {
+    try {
+      const performers = await FirestoreService.getLeaderboard(3); // Top 3 only for preview
+      setTopPerformers(performers);
+    } catch (error) {
+      console.error('Error loading top performers:', error);
+    }
   };
 
   const checkOnboarding = () => {
@@ -37,16 +65,34 @@ export const Home: React.FC = () => {
   const categoryStats = DataService.getCategoryStats(modules, progress);
   const moduleTypeStats = DataService.getModuleTypeStats(modules, progress);
 
-  const resetProgress = () => {
+  const resetProgress = async () => {
     if (window.confirm('Are you sure you want to reset all progress?')) {
-      ProgressService.resetProgress();
-      loadData();
+      try {
+        await ProgressService.resetProgress();
+        await loadData(); // Reload data after reset
+        if (currentUser) {
+          await loadTopPerformers(); // Reload leaderboard data
+        }
+      } catch (error) {
+        console.error('Error resetting progress:', error);
+        alert('Failed to reset progress. Please try again.');
+      }
     }
   };
 
   const resetOnboarding = () => {
     OnboardingService.resetOnboarding();
     setShowOnboarding(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Redirect to home page after logout
+      window.location.hash = '#/';
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
   };
 
   // Fixed navigation function for hash routing
@@ -94,6 +140,9 @@ export const Home: React.FC = () => {
           </div>
           <h2 className="text-xl font-semibold text-gray-900">AWS RESTART</h2>
           <p className="text-gray-600">Loading your progress...</p>
+          {currentUser && (
+            <p className="text-sm text-gray-500 mt-2">Syncing with cloud storage</p>
+          )}
         </div>
       </div>
     );
@@ -115,8 +164,59 @@ export const Home: React.FC = () => {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">AWS RESTART</h1>
               <p className="text-sm text-gray-600">Progress Tracker</p>
+              {currentUser && (
+                <div className="flex items-center space-x-2 mt-1">
+                  <p className="text-xs text-gray-500">
+                    Welcome, {currentUser.displayName || currentUser.email}
+                  </p>
+                  {userStats && userStats.totalPoints > 0 && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {userStats.totalPoints} points
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex items-center space-x-4">
+              {/* User Info */}
+              {currentUser ? (
+                <div className="flex items-center space-x-3">
+                  {currentUser.photoURL ? (
+                    <img
+                      src={currentUser.photoURL}
+                      alt="Profile"
+                      className="w-8 h-8 rounded-full"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                      {currentUser.displayName?.[0]?.toUpperCase() || currentUser.email?.[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => navigateTo('/login')}
+                    className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => navigateTo('/signup')}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              )}
+
+              {/* App Controls */}
               <button
                 onClick={resetOnboarding}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
@@ -142,20 +242,123 @@ export const Home: React.FC = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Progress Overview - Add class for tour */}
-        <div className="bg-gradient-to-br from-blue-50 to-orange-50 rounded-3xl p-8 mb-8 progress-ring-container">
-          <div className="flex flex-col items-center text-center">
-            <ProgressRing progress={overallProgress} size={140} strokeWidth={10} />
-            <h2 className="text-2xl font-bold text-gray-900 mt-6">
-              {Math.round(overallProgress * 100)}% Complete
+        {/* Welcome Message for Authenticated Users */}
+        {currentUser && (
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h2 className="text-lg font-semibold text-blue-900">
+              Welcome back{currentUser.displayName ? `, ${currentUser.displayName}` : ''}!
             </h2>
-            <p className="text-gray-600 mt-2">
-              {totalCompleted} of {modules.length} modules completed
+            <p className="text-blue-700 text-sm">
+              Continue your AWS learning journey. You've completed {totalCompleted} of {modules.length} modules.
+              {userStats && userStats.totalPoints > 0 && (
+                <span className="block mt-1 text-blue-600">
+                  🏆 You've earned {userStats.totalPoints} points so far!
+                </span>
+              )}
             </p>
           </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Progress Overview */}
+          <div className="lg:col-span-2 bg-gradient-to-br from-blue-50 to-orange-50 rounded-3xl p-8 progress-ring-container">
+            <div className="flex flex-col items-center text-center">
+              <ProgressRing progress={overallProgress} size={140} strokeWidth={10} />
+              <h2 className="text-2xl font-bold text-gray-900 mt-6">
+                {Math.round(overallProgress * 100)}% Complete
+              </h2>
+              <p className="text-gray-600 mt-2">
+                {totalCompleted} of {modules.length} modules completed
+              </p>
+              {userStats && (
+                <div className="mt-4 flex items-center space-x-4 text-sm">
+                  <span className="bg-white px-3 py-1 rounded-full text-blue-600 font-medium">
+                    {userStats.totalPoints} total points
+                  </span>
+                  <span className="bg-white px-3 py-1 rounded-full text-green-600 font-medium">
+                    {userStats.completedKCs} KCs
+                  </span>
+                  <span className="bg-white px-3 py-1 rounded-full text-purple-600 font-medium">
+                    {userStats.completedLabs} Labs
+                  </span>
+                </div>
+              )}
+              {!currentUser && (
+                <p className="text-sm text-gray-500 mt-4">
+                  <button 
+                    onClick={() => navigateTo('/signup')}
+                    className="text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Sign up
+                  </button> to save your progress across devices
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Leaderboard Preview */}
+          {currentUser && topPerformers.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                🏆 Top Performers
+                <button 
+                  onClick={() => navigateTo('/stats#leaderboard')}
+                  className="ml-auto text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  View All →
+                </button>
+              </h3>
+              <div className="space-y-3">
+                {topPerformers.slice(0, 3).map((entry, index) => (
+                  <div 
+                    key={entry.uid}
+                    className={`flex items-center space-x-3 p-3 rounded-lg ${
+                      entry.uid === currentUser.uid 
+                        ? 'bg-blue-50 border border-blue-200' 
+                        : 'bg-gray-50'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                      entry.rank === 1 
+                        ? 'bg-yellow-100 text-yellow-800' 
+                        : entry.rank === 2
+                        ? 'bg-gray-100 text-gray-800'
+                        : 'bg-orange-100 text-orange-800'
+                    }`}>
+                      {entry.rank}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-gray-900 text-sm truncate">
+                          {entry.displayName}
+                        </span>
+                        {entry.uid === currentUser.uid && (
+                          <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full">
+                            You
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {entry.totalPoints} points • {entry.completedModules} modules
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {userStats && (
+                <div className="mt-4 p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white text-center">
+                  <div className="text-sm">Your Points</div>
+                  <div className="text-2xl font-bold">{userStats.totalPoints}</div>
+                  <div className="text-xs opacity-90">
+                    {userStats.completedKCs} KCs • {userStats.completedLabs} Labs
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Module Type Statistics - Add class for tour */}
+        {/* Module Type Statistics */}
         <section className="mb-8 module-type-stats">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Progress by Module Type</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -261,7 +464,7 @@ export const Home: React.FC = () => {
           </div>
         </section>
 
-        {/* Categories Grid - Add class for tour */}
+        {/* Categories Grid */}
         <section className="mb-8 categories-grid">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Categories</h2>
@@ -297,7 +500,7 @@ export const Home: React.FC = () => {
           </div>
         </section>
 
-        {/* Quick Actions - Add class for tour */}
+        {/* Quick Actions */}
         <section className="quick-actions">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
