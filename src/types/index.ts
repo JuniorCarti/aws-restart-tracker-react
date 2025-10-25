@@ -55,3 +55,75 @@ export interface TourStep {
 export interface AppConfig {
   showOnboarding: boolean;
 }
+
+// Authentication Types
+export interface User {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  createdAt?: Date;
+}
+
+export interface AuthContextType {
+  currentUser: User | null;
+  loading: boolean;
+  signUp: (email: string, password: string, displayName?: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+}
+
+export interface LoginFormData {
+  email: string;
+  password: string;
+}
+
+export interface SignupFormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  displayName?: string;
+}
+
+// Leaderboard Types
+export interface LeaderboardEntry {
+  uid: string;
+  displayName: string;
+  email: string;
+  photoURL?: string;
+  totalPoints: number;
+  completedModules: number;
+  completedKCs: number;
+  completedLabs: number;
+  completedExitTickets: number;
+  completedDemonstrations: number;
+  completedActivities: number;
+  rank: number;
+  lastActive: Date;
+}
+
+export interface PointsSystem {
+  knowledgeChecks: number;
+  labs: number;
+  exitTickets: number;
+  demonstrations: number;
+  activities: number;
+}
+
+export interface UserStats {
+  totalPoints: number;
+  completedModules: number;
+  completedKCs: number;
+  completedLabs: number;
+  completedExitTickets: number;
+  completedDemonstrations: number;
+  completedActivities: number;
+  rank?: number;
+  totalUsers?: number;
+}
+
+export interface LeaderboardFilters {
+  timeRange: 'all-time' | 'weekly' | 'monthly';
+  category?: string;
+}
