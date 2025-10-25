@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ModuleCard } from '../components/ModuleCard';
 import { DataService } from '../services/dataService';
 import { ProgressService } from '../services/progressService';
+import { useAuth } from '../contexts/AuthContext';
 import { Module } from '../types';
 
 export const Modules: React.FC = () => {
@@ -10,18 +11,19 @@ export const Modules: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const { currentUser, logout } = useAuth();
 
   useEffect(() => {
     loadData();
     readUrlParameters();
   }, []);
 
-  const loadData = () => {
+  const loadData = async () => {
     const allModules = DataService.getAllModules();
     const userProgress = ProgressService.getProgress();
     
     setModules(allModules);
-    setProgress(userProgress);
+    setProgress(await userProgress);
   };
 
   // NEW: Read URL parameters to set initial filters
@@ -46,6 +48,19 @@ export const Modules: React.FC = () => {
         setSelectedType(type);
       }
     }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      window.location.hash = '#/';
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
+  };
+
+  const navigateTo = (path: string) => {
+    window.location.hash = path;
   };
 
   const categories = ['All', ...Array.from(new Set(modules.map(m => m.category)))];
@@ -133,18 +148,74 @@ export const Modules: React.FC = () => {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">All Modules</h1>
               <p className="text-sm text-gray-600">{completedCount}/{totalCount} completed</p>
+              {currentUser && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {currentUser.displayName || currentUser.email}
+                </p>
+              )}
             </div>
-            <button
-              onClick={() => window.history.back()}
-              className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              ← Back
-            </button>
+            <div className="flex items-center space-x-4">
+              {/* User Info */}
+              {currentUser ? (
+                <div className="flex items-center space-x-3">
+                  {currentUser.photoURL ? (
+                    <img
+                      src={currentUser.photoURL}
+                      alt="Profile"
+                      className="w-8 h-8 rounded-full"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                      {currentUser.displayName?.[0]?.toUpperCase() || currentUser.email?.[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => navigateTo('/login')}
+                    className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => navigateTo('/signup')}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              )}
+              <button
+                onClick={() => window.history.back()}
+                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                ← Back
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* User Welcome Message */}
+        {currentUser && (
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h2 className="text-lg font-semibold text-blue-900">
+              Continue Learning{currentUser.displayName ? `, ${currentUser.displayName}` : ''}
+            </h2>
+            <p className="text-blue-700 text-sm">
+              Filter modules by category, type, or search for specific content.
+            </p>
+          </div>
+        )}
+
         {/* Search Bar */}
         <div className="mb-6">
           <input
@@ -218,6 +289,16 @@ export const Modules: React.FC = () => {
             {selectedType !== 'all' && ` • ${selectedType.replace('-', ' ')}`}
             {searchTerm && ` • matching "${searchTerm}"`}
           </p>
+          {!currentUser && (
+            <p className="text-sm text-blue-600 mt-2">
+              <button 
+                onClick={() => navigateTo('/signup')}
+                className="font-medium hover:text-blue-800"
+              >
+                Sign up
+              </button> to save your progress across devices
+            </p>
+          )}
         </div>
 
         {/* Modules List */}
@@ -227,6 +308,16 @@ export const Modules: React.FC = () => {
               <div className="text-gray-400 text-6xl mb-4">🔍</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No modules found</h3>
               <p className="text-gray-600">Try adjusting your filters or search term</p>
+              {!currentUser && (
+                <p className="text-sm text-blue-600 mt-2">
+                  <button 
+                    onClick={() => navigateTo('/signup')}
+                    className="font-medium hover:text-blue-800"
+                  >
+                    Sign up
+                  </button> to track your learning progress
+                </p>
+              )}
             </div>
           ) : (
             filteredModules.map(module => (
