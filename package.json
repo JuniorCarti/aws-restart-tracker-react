@@ -2,9 +2,17 @@
   "name": "aws-restart-tracker",
   "version": "1.0.0",
   "description": "AWS RESTART Program Progress Tracker - Track your learning progress through the AWS RESTART curriculum",
-  "keywords": ["aws", "restart", "progress", "tracker", "education", "learning"],
+  "keywords": [
+    "aws",
+    "restart",
+    "progress",
+    "tracker",
+    "education",
+    "learning"
+  ],
   "homepage": "https://your-project-name.web.app",
   "dependencies": {
+    "firebase": "^12.4.0",
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -40,9 +48,9 @@
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "autoprefixer": "^10.4.14",
+    "firebase-tools": "^12.4.3",
     "postcss": "^8.4.21",
-    "tailwindcss": "^3.3.0",
-    "firebase-tools": "^12.4.3"
+    "tailwindcss": "^3.3.0"
   },
   "engines": {
     "node": ">=16.0.0",
