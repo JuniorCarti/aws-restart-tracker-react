@@ -1,6 +1,15 @@
-import { Module, CategoryStats, ModuleTypeStats, CategoryProgress } from '../types';
+import { Module, CategoryStats, ModuleTypeStats, CategoryProgress, PointsSystem, UserStats } from '../types';
 
 export class DataService {
+  // Points system configuration
+  static readonly POINTS_SYSTEM: PointsSystem = {
+    knowledgeChecks: 100,  // KCs are 100 points each
+    labs: 1,               // Labs are 1 point each
+    exitTickets: 50,       // Exit Tickets are 50 points each
+    demonstrations: 25,    // Demonstrations are 25 points each
+    activities: 10         // Activities are 10 points each
+  };
+
   static getAllModules(): Module[] {
     const modules: Module[] = [];
     let moduleId = 1;
@@ -604,5 +613,112 @@ export class DataService {
   static getModulesByCategory(modules: Module[], category: string): Module[] {
     if (category === 'All') return modules;
     return modules.filter(m => m.category === category);
+  }
+
+  // New method to get module by ID
+  static getModuleById(id: number): Module | undefined {
+    const modules = this.getAllModules();
+    return modules.find(module => module.id === id);
+  }
+
+  // New method to get total module count
+  static getTotalModules(): number {
+    return this.getAllModules().length;
+  }
+
+  // LEADERBOARD METHODS
+
+  // Calculate user points based on completed modules
+  static calculateUserPoints(modules: Module[], progress: { [key: number]: boolean }): UserStats {
+    let totalPoints = 0;
+    let completedKCs = 0;
+    let completedLabs = 0;
+    let completedExitTickets = 0;
+    let completedDemonstrations = 0;
+    let completedActivities = 0;
+
+    modules.forEach(module => {
+      if (progress[module.id]) {
+        if (module.isKC) {
+          totalPoints += this.POINTS_SYSTEM.knowledgeChecks;
+          completedKCs++;
+        }
+        if (module.isLab) {
+          totalPoints += this.POINTS_SYSTEM.labs;
+          completedLabs++;
+        }
+        if (module.isExitTicket) {
+          totalPoints += this.POINTS_SYSTEM.exitTickets;
+          completedExitTickets++;
+        }
+        if (module.isDemonstration) {
+          totalPoints += this.POINTS_SYSTEM.demonstrations;
+          completedDemonstrations++;
+        }
+        if (module.isActivity) {
+          totalPoints += this.POINTS_SYSTEM.activities;
+          completedActivities++;
+        }
+      }
+    });
+
+    const completedModules = completedKCs + completedLabs + completedExitTickets + completedDemonstrations + completedActivities;
+
+    return {
+      totalPoints,
+      completedModules,
+      completedKCs,
+      completedLabs,
+      completedExitTickets,
+      completedDemonstrations,
+      completedActivities
+    };
+  }
+
+  // Get points for a specific module type
+  static getPointsForModuleType(moduleType: keyof PointsSystem): number {
+    return this.POINTS_SYSTEM[moduleType];
+  }
+
+  // Get total possible points
+  static getTotalPossiblePoints(): number {
+    const modules = this.getAllModules();
+    let totalPoints = 0;
+
+    modules.forEach(module => {
+      if (module.isKC) totalPoints += this.POINTS_SYSTEM.knowledgeChecks;
+      if (module.isLab) totalPoints += this.POINTS_SYSTEM.labs;
+      if (module.isExitTicket) totalPoints += this.POINTS_SYSTEM.exitTickets;
+      if (module.isDemonstration) totalPoints += this.POINTS_SYSTEM.demonstrations;
+      if (module.isActivity) totalPoints += this.POINTS_SYSTEM.activities;
+    });
+
+    return totalPoints;
+  }
+
+  // Get breakdown of points by module type
+  static getPointsBreakdown(modules: Module[], progress: { [key: number]: boolean }) {
+    const stats = this.getModuleTypeStats(modules, progress);
+    
+    return {
+      knowledgeChecks: stats.knowledgeChecks * this.POINTS_SYSTEM.knowledgeChecks,
+      labs: stats.labs * this.POINTS_SYSTEM.labs,
+      exitTickets: stats.exitTickets * this.POINTS_SYSTEM.exitTickets,
+      demonstrations: stats.demonstrations * this.POINTS_SYSTEM.demonstrations,
+      activities: stats.activities * this.POINTS_SYSTEM.activities
+    };
+  }
+
+  // Get user's current rank based on points (this would typically be calculated on the server)
+  static calculateRank(userPoints: number, allUserPoints: number[]): number {
+    if (allUserPoints.length === 0) return 1;
+    
+    // Sort points in descending order
+    const sortedPoints = [...allUserPoints].sort((a, b) => b - a);
+    
+    // Find the rank (position in sorted array + 1)
+    const rank = sortedPoints.findIndex(points => points <= userPoints) + 1;
+    
+    return rank === 0 ? sortedPoints.length + 1 : rank;
   }
 }
